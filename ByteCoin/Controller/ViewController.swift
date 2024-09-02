@@ -8,20 +8,49 @@
 
 import UIKit
 
-class ViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDelegate {
+class ViewController: UIViewController {
     
     @IBOutlet weak var bitcoinLabel: UILabel!
     @IBOutlet weak var currencyLabel: UILabel!
     @IBOutlet weak var currencyPicker: UIPickerView!
     
-    let coinManager = CoinManager()
-    
+    var coinManager = CoinManager()
+        
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        //Easily Missed: Must set the coinManager's delegate as this current class so that we can recieve
+        //the notifications when the delegate methods are called.
+        coinManager.delegate = self
         currencyPicker.dataSource = self
         currencyPicker.delegate = self
+        
     }
+    
+    
+
+}
+
+//MARK:  - CoinManagerDelegate
+extension ViewController: CoinManagerDelegate {
+    
+    // implementation from delegate coinManagerDelegate
+    func didUpdatePrice(price: String, currency: String) {
+        DispatchQueue.main.async {
+            self.bitcoinLabel.text = price
+            self.currencyLabel.text = currency
+        }
+    }
+    
+    // implementation off didFailWithError delegate
+    func didFailWithError(error: Error){
+        print(error)
+    }
+    
+}
+
+//MARK: - UIPickerView DataSource & Delegate
+extension ViewController: UIPickerViewDataSource, UIPickerViewDelegate {
     
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 1
@@ -37,10 +66,8 @@ class ViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDele
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         let selectedCurrency = coinManager.currencyArray[row]
-        
         coinManager.getCoinPrice(for: selectedCurrency)
     }
-
-
+    
 }
 
